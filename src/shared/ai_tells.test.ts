@@ -74,6 +74,31 @@ describe("scanForTells", () => {
     );
   });
 
+  it("finds phrases that delay the point", () => {
+    expect(
+      idsFor("At the end of the day, your team needs one source of truth."),
+    ).toContain("empty-phrase");
+    expect(idsFor("When it comes to pricing, we keep it simple.")).toContain(
+      "empty-phrase",
+    );
+  });
+
+  it("finds trailing clauses that restate instead of explain", () => {
+    expect(
+      idsFor(
+        "We added file search, highlighting our commitment to better workflows.",
+      ),
+    ).toContain("superficial-analysis");
+  });
+
+  // A participle doing real descriptive work is not the tell; the tell is a
+  // clause bolted onto an already-finished sentence.
+  it("leaves a descriptive participle alone", () => {
+    expect(idsFor("A dashboard highlighting overdue deals.")).not.toContain(
+      "superficial-analysis",
+    );
+  });
+
   it("finds colon reveals and rhetorical setups", () => {
     expect(idsFor("The best part: it learns from every call.")).toContain(
       "colon-reveal",

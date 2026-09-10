@@ -5,12 +5,16 @@
  * That keeps the Humanize review cheap and its findings identical run to run,
  * and it lets the eval suite score mechanically without a Dyad Pro key.
  *
- * The taxonomy adapts several patterns from petergyang/no-ai-slop (MIT) and
- * adds the ones specific to landing-page copy, where the tells differ because
- * the form does.
+ * Several patterns and word lists are adapted from petergyang/no-ai-slop
+ * (MIT, https://github.com/petergyang/no-ai-slop), whose taxonomy is tuned for
+ * essay and newsletter prose. The landing-page tells — tricolon headlines,
+ * category inflation, vague CTA labels, inflated social-proof numbers — are
+ * additions, because marketing copy has habits long-form writing does not.
  *
- * A match is evidence that copy *looks* generated, never proof that it reads
- * badly — `confidence` says how strongly, and the model makes the final call.
+ * A match is evidence that copy *looks* generated, never proof that AI wrote
+ * it and never proof that it reads badly. That distinction is the point: AI
+ * detectors guess, while a named pattern is something the author can check for
+ * themselves and disagree with.
  */
 
 export type TellId =
@@ -23,6 +27,8 @@ export type TellId =
   | "unsourced-number"
   | "colon-reveal"
   | "question-into-answer"
+  | "empty-phrase"
+  | "superficial-analysis"
   | "em-dash-density";
 
 /**
@@ -111,6 +117,18 @@ const TELLS: Record<TellId, TellSpec> = {
     confidence: "likely",
     why: "Rhetorical setups delay the point. Leading with the answer respects the reader's time.",
   },
+  "empty-phrase": {
+    id: "empty-phrase",
+    title: "A phrase that delays the point",
+    confidence: "likely",
+    why: "Openers like “at the end of the day” and “when it comes to” take up room before the sentence starts. Deleting them costs nothing.",
+  },
+  "superficial-analysis": {
+    id: "superficial-analysis",
+    title: "A clause that explains nothing",
+    confidence: "likely",
+    why: "Trailing “highlighting” or “underscoring” clauses look like analysis but only restate the fact. Say what it lets the reader do instead.",
+  },
   "em-dash-density": {
     id: "em-dash-density",
     title: "Dashes doing comma work",
@@ -132,6 +150,10 @@ export function listTells(): readonly TellSpec[] {
 // catches ordinary writing, and a scanner people learn to distrust is worse
 // than no scanner.
 
+// The overlap with no-ai-slop's banned list is deliberate: those words earned
+// their place there. Left out are its formal-but-honest entries (utilize,
+// facilitate, leverage) — wordiness is a different complaint from inflation,
+// and "leverage" has a legitimate sense in business copy.
 const INFLATED_VERBS = [
   "supercharge",
   "supercharges",
@@ -146,6 +168,14 @@ const INFLATED_VERBS = [
   "revolutionizes",
   "empower",
   "empowers",
+  "harness",
+  "harnesses",
+  "streamline",
+  "streamlines",
+  "embark",
+  "delve",
+  "foster",
+  "fosters",
 ];
 
 const FRICTIONLESS_ADVERBS = [
@@ -165,7 +195,41 @@ const CATEGORY_INFLATION = [
   "state-of-the-art",
   "next-generation",
   "game-changing",
+  "game changer",
+  "paradigm shift",
   "best-of-breed",
+  "transformative",
+];
+
+/** Phrases that occupy the front of a sentence without starting it. */
+const EMPTY_PHRASES = [
+  "it's worth noting",
+  "it is worth noting",
+  "it's important to note",
+  "it is important to note",
+  "at the end of the day",
+  "when it comes to",
+  "at its core",
+  "in today's world",
+  "in the age of",
+  "in the world of",
+  "the reality is",
+  "the truth is",
+  "going forward",
+  "let's dive in",
+  "needless to say",
+];
+
+/** Trailing -ing clauses that restate rather than explain. */
+const SUPERFICIAL_ANALYSIS_VERBS = [
+  "highlighting",
+  "underscoring",
+  "reflecting",
+  "showcasing",
+  "demonstrating",
+  "emphasizing",
+  "signaling",
+  "solidifying",
 ];
 
 /** Matched only as a whole string, so prose containing "learn more" is left alone. */
@@ -250,6 +314,18 @@ const UNSOURCED_NUMBER = new RegExp(
 const COLON_REVEAL =
   /\b(?:the\s+(?:best|hard|real|catch|kicker|beauty|magic|result|upshot)\s+(?:part|thing|news|of it)?)\s*:/gi;
 
+/**
+ * "…adds file search, highlighting the team's commitment to better workflows."
+ *
+ * The comma is required: "a dashboard highlighting overdue deals" is a real
+ * description, while a trailing clause bolted onto a finished sentence is the
+ * tell.
+ */
+const SUPERFICIAL_ANALYSIS = new RegExp(
+  String.raw`,\s*(?:${SUPERFICIAL_ANALYSIS_VERBS.join("|")})\b[^.!?]*`,
+  "gi",
+);
+
 /** "Tired of messy spreadsheets? There's a better way." */
 const QUESTION_INTO_ANSWER =
   /\?\s+(?:there'?s a better way|here'?s (?:how|why|the)|you'?re not alone|we get it|good news|the answer is)\b/gi;
@@ -323,6 +399,8 @@ export function scanForTells(text: string): TellMatch[] {
     ...matchPattern(text, UNSOURCED_NUMBER, "unsourced-number"),
     ...matchPattern(text, COLON_REVEAL, "colon-reveal"),
     ...matchPattern(text, QUESTION_INTO_ANSWER, "question-into-answer"),
+    ...matchWordList(text, EMPTY_PHRASES, "empty-phrase"),
+    ...matchPattern(text, SUPERFICIAL_ANALYSIS, "superficial-analysis"),
   ].sort((a, b) => a.index - b.index);
 
   return [...positional, ...matchEmDashDensity(text)];
