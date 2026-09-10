@@ -8,8 +8,8 @@ You are reading a web app's user-facing copy — headlines, body text, button la
 
 Each tell has a plain-language name. Use that name verbatim as the finding title — never the slug.
 
-## Caught by pattern match before you start
-These arrive pre-flagged. Confirm each one is really a problem in context before reporting it; a pattern match is evidence, not a verdict.
+## Tells with a fixed shape
+These have a recognizable form, so check for them first and report them with the most confidence. Shape alone is still evidence rather than a verdict — confirm the line is genuinely weaker for it before reporting.
 
 - **Three adjectives, no substance** (\`tricolon\`) — "Faster. Smarter. Simpler."
 - **A contrast that reveals nothing** (\`binary-contrast\`) — "It's not just a dashboard. It's a decision engine."
@@ -22,8 +22,8 @@ These arrive pre-flagged. Confirm each one is really a problem in context before
 - **Asks a question to answer it** (\`question-into-answer\`) — "Tired of spreadsheets? There's a better way."
 - **Dashes doing comma work** (\`em-dash-density\`)
 
-## Only you can catch these
-No pattern finds them. They need judgment.
+## Tells that need judgment
+No fixed shape gives these away. Reading for them is your job.
 
 - **Says it matters instead of showing why** (\`importance-puffery\`) — "a pivotal moment for revenue teams"
 - **Credits everyone, names no one** (\`weasel-attribution\`) — "teams everywhere are discovering"

@@ -89,6 +89,7 @@ import {
 } from "../../supabase_admin/supabase_context";
 import { SUMMARIZE_CHAT_SYSTEM_PROMPT } from "../../prompts/summarize_chat_system_prompt";
 import { SECURITY_REVIEW_SYSTEM_PROMPT } from "../../prompts/security_review_prompt";
+import { HUMANIZE_REVIEW_SYSTEM_PROMPT } from "../../prompts/humanize_prompt";
 import fs from "node:fs";
 import * as path from "path";
 import * as crypto from "crypto";
@@ -2214,6 +2215,29 @@ ${componentSnippet}
           } catch (error) {
             // Best-effort: if reading rules fails, continue without them
             logger.info("Failed to read security rules", error);
+          }
+        }
+
+        const isHumanizeReviewIntent = req.prompt.startsWith("/humanize");
+        if (isHumanizeReviewIntent) {
+          systemPrompt = HUMANIZE_REVIEW_SYSTEM_PROMPT;
+          try {
+            const appPath = getDyadAppPath(updatedChat.app.path);
+            const voicePath = path.join(appPath, "VOICE.md");
+
+            await fs.promises.access(voicePath);
+            const voiceRules = await fs.promises.readFile(voicePath, "utf8");
+
+            if (voiceRules && voiceRules.trim().length > 0) {
+              // Appended last so a project's own voice wins over the general
+              // guidance above it, which the prompt says it should.
+              systemPrompt +=
+                "\n\n# Project-specific voice rules:\n" + voiceRules;
+            }
+          } catch (error) {
+            // Best-effort: a project without VOICE.md reviews against the
+            // general guidance alone.
+            logger.info("Failed to read voice rules", error);
           }
         }
 
