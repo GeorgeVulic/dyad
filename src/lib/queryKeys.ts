@@ -224,6 +224,11 @@ export const queryKeys = {
       ["security-review", appId] as const,
   },
 
+  humanizeReview: {
+    byApp: ({ appId }: { appId: number | null }) =>
+      ["humanize-review", appId] as const,
+  },
+
   // ─────────────────────────────────────────────────────────────────────────────
   // App Theme
   // ─────────────────────────────────────────────────────────────────────────────
@@ -514,6 +519,9 @@ export type AppQueryKey =
   | QueryKeyOf<(typeof queryKeys.appName)[keyof typeof queryKeys.appName]>
   | QueryKeyOf<
       (typeof queryKeys.securityReview)[keyof typeof queryKeys.securityReview]
+    >
+  | QueryKeyOf<
+      (typeof queryKeys.humanizeReview)[keyof typeof queryKeys.humanizeReview]
     >
   | QueryKeyOf<(typeof queryKeys.appTheme)[keyof typeof queryKeys.appTheme]>
   | QueryKeyOf<(typeof queryKeys.themes)[keyof typeof queryKeys.themes]>

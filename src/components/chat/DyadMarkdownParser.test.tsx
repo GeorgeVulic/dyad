@@ -227,6 +227,88 @@ describe("DyadMarkdownParser dyad-git", () => {
   });
 });
 
+const HUMANIZE_FINDING = [
+  '<dyad-humanize-finding title="A benefit that fits any product" tell="benefit-padding" confidence="strong">',
+  "**What**: The tagline could belong to any product.",
+  "**Why it reads as AI**: It fails the portability test.",
+  "**Your line**: I design & build delightful products.",
+  "**Suggested**: I design & build design systems for fintech teams.",
+  "**Relevant Files**: `src/data/config.ts:13`",
+  "</dyad-humanize-finding>",
+].join("\n");
+
+describe("DyadMarkdownParser dyad-humanize-finding", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  // The person acting on a copy finding is reading their page, not browsing a
+  // repo, so the sentence leads and the path stays out of the collapsed view.
+  it("leads with the quoted line and keeps the path out of the way", () => {
+    render(<DyadMarkdownParser content={HUMANIZE_FINDING} />);
+
+    expect(screen.getByText("A benefit that fits any product")).toBeTruthy();
+    expect(
+      screen.getByText("I design & build delightful products."),
+    ).toBeTruthy();
+    expect(screen.queryByText("src/data/config.ts:13")).toBeNull();
+  });
+
+  it("reveals the reasoning and the replacement once expanded", () => {
+    render(<DyadMarkdownParser content={HUMANIZE_FINDING} />);
+
+    fireEvent.click(screen.getByRole("button"));
+
+    expect(screen.getByText("It fails the portability test.")).toBeTruthy();
+    expect(
+      screen.getByText("I design & build design systems for fintech teams."),
+    ).toBeTruthy();
+    expect(screen.getByText("src/data/config.ts:13")).toBeTruthy();
+  });
+
+  // A finding that depends on a fact the reviewer does not have must ask for
+  // it rather than offer a replacement, so the two never render together.
+  it("asks for a figure instead of suggesting one", () => {
+    render(
+      <DyadMarkdownParser
+        content={[
+          '<dyad-humanize-finding title="A number with no source" tell="unsourced-number" confidence="likely">',
+          "**Your line**: Cutting design-to-ship time by 40%.",
+          "**Needs**: The real measurement, or the line goes.",
+          "</dyad-humanize-finding>",
+        ].join("\n")}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button"));
+
+    expect(screen.getByText("Needs from you")).toBeTruthy();
+    expect(screen.queryByText("Suggested")).toBeNull();
+  });
+
+  // Models do not always follow the output format. A finding that skips the
+  // labels must still show its prose rather than an empty shell.
+  it("hands the raw prose to markdown when the labels are missing", () => {
+    render(
+      <DyadMarkdownParser
+        content={
+          '<dyad-humanize-finding title="Unstructured">\nJust some prose about the copy.\n</dyad-humanize-finding>'
+        }
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button"));
+
+    expect(screen.getByText("Unstructured")).toBeTruthy();
+    // react-markdown is mocked to render nothing, so assert on what it was
+    // asked to render instead.
+    const rendered = [...markdownRenderCounts.keys()];
+    expect(
+      rendered.some((c) => c.includes("Just some prose about the copy.")),
+    ).toBe(true);
+  });
+});
+
 describe("DyadMarkdownParser dyad-security-finding", () => {
   afterEach(() => {
     cleanup();

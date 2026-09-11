@@ -8,6 +8,7 @@ export type PreviewMode =
   | "configure"
   | "publish"
   | "security"
+  | "humanize"
   | "tests"
   | "plan";
 

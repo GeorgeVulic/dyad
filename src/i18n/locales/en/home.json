@@ -212,6 +212,7 @@
     "exitVersionView": "Exit version view",
     "configure": "Configure",
     "security": "Security",
+    "humanize": "Humanize",
     "publish": "Publish",
     "tests": "Tests",
     "plan": "Plan",

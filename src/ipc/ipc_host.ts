@@ -38,6 +38,7 @@ import { registerPromptHandlers } from "./handlers/prompt_handlers";
 import { registerHelpBotHandlers } from "./handlers/help_bot_handlers";
 import { registerMcpHandlers } from "./handlers/mcp_handlers";
 import { registerSecurityHandlers } from "./handlers/security_handlers";
+import { registerHumanizeHandlers } from "./handlers/humanize_handlers";
 import { registerVisualEditingHandlers } from "../pro/main/ipc/handlers/visual_editing_handlers";
 import { registerAgentToolHandlers } from "../pro/main/ipc/handlers/local_agent/agent_tool_handlers";
 import { registerFreeAgentQuotaHandlers } from "./handlers/free_agent_quota_handlers";
@@ -103,6 +104,7 @@ export function registerIpcHandlers() {
   registerHelpBotHandlers();
   registerMcpHandlers();
   registerSecurityHandlers();
+  registerHumanizeHandlers();
   registerVisualEditingHandlers();
   registerAgentToolHandlers();
   registerFreeAgentQuotaHandlers();

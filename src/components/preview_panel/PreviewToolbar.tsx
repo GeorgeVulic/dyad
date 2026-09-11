@@ -19,6 +19,7 @@ import {
   Minimize2,
   MoreHorizontal,
   Shield,
+  PenLine,
   Wrench,
   X,
 } from "lucide-react";
@@ -52,6 +53,7 @@ type ToolbarMode = Exclude<PreviewMode, "plan">;
 const TAB_ORDER = [
   "preview",
   "code",
+  "humanize",
   "publish",
   "configure",
   "problems",
@@ -292,6 +294,11 @@ export const PreviewToolbar = () => {
       icon: <Shield size={16} />,
       label: t("preview.security"),
       testId: "security-mode-button",
+    },
+    humanize: {
+      icon: <PenLine size={16} />,
+      label: t("preview.humanize"),
+      testId: "humanize-mode-button",
     },
     tests: {
       icon: <FlaskConical size={16} />,

@@ -145,6 +145,7 @@ export { contextClient } from "./context";
 export { upgradeClient } from "./upgrade";
 export { visualEditingClient } from "./visual-editing";
 export { securityClient } from "./security";
+export { humanizeClient } from "./humanize";
 export { miscClient, miscEventClient } from "./misc";
 export { freeAgentQuotaClient } from "./free_agent_quota";
 export { freeModelQuotaClient } from "./free_model_quota";
@@ -547,6 +548,7 @@ import { contextClient } from "./context";
 import { upgradeClient } from "./upgrade";
 import { visualEditingClient } from "./visual-editing";
 import { securityClient } from "./security";
+import { humanizeClient } from "./humanize";
 import { miscClient, miscEventClient } from "./misc";
 import { freeAgentQuotaClient } from "./free_agent_quota";
 import { freeModelQuotaClient } from "./free_model_quota";
@@ -633,6 +635,7 @@ export const ipc = {
   upgrade: upgradeClient,
   visualEditing: visualEditingClient,
   security: securityClient,
+  humanize: humanizeClient,
   misc: miscClient,
   freeAgentQuota: freeAgentQuotaClient,
   freeModelQuota: freeModelQuotaClient,

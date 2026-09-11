@@ -28,6 +28,7 @@ import { Console } from "./Console";
 import { runAppLifecycleInBackground, useRunApp } from "@/hooks/useRunApp";
 import { PublishPanel } from "./PublishPanel";
 import { SecurityPanel } from "./SecurityPanel";
+import { HumanizePanel } from "./HumanizePanel";
 import { TestsPanel } from "./TestsPanel";
 import { PlanPanel } from "./PlanPanel";
 import { PackageManagerWarningBanner } from "./PackageManagerWarningBanner";
@@ -332,6 +333,8 @@ export function PreviewPanel() {
                   <PublishPanel />
                 ) : previewMode === "security" ? (
                   <SecurityPanel />
+                ) : previewMode === "humanize" ? (
+                  <HumanizePanel />
                 ) : previewMode === "tests" ? (
                   <TestsPanel />
                 ) : previewMode === "plan" ? (
