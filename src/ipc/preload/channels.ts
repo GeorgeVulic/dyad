@@ -47,6 +47,7 @@ import { contextContracts } from "../types/context";
 import { upgradeContracts } from "../types/upgrade";
 import { visualEditingContracts } from "../types/visual-editing";
 import { securityContracts } from "../types/security";
+import { humanizeContracts } from "../types/humanize";
 import { miscContracts, miscEvents } from "../types/misc";
 import { freeAgentQuotaContracts } from "../types/free_agent_quota";
 import { freeModelQuotaContracts } from "../types/free_model_quota";
@@ -138,6 +139,7 @@ export const VALID_INVOKE_CHANNELS = [
   ...getInvokeChannels(upgradeContracts),
   ...getInvokeChannels(visualEditingContracts),
   ...getInvokeChannels(securityContracts),
+  ...getInvokeChannels(humanizeContracts),
   ...getInvokeChannels(miscContracts),
   ...getInvokeChannels(freeAgentQuotaContracts),
   ...getInvokeChannels(freeModelQuotaContracts),

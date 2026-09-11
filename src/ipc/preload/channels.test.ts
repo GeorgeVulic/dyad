@@ -10,6 +10,7 @@ import {
   coolifySetupContracts,
   coolifySetupEvents,
 } from "../types/coolify_setup";
+import { humanizeContracts } from "../types/humanize";
 import {
   VALID_INVOKE_CHANNELS,
   VALID_RECEIVE_CHANNELS,
@@ -64,6 +65,17 @@ describe("coolify-setup preload channels", () => {
     }
     for (const event of Object.values(coolifySetupEvents)) {
       expect(VALID_RECEIVE_CHANNELS).toContain(event.channel);
+    }
+  });
+});
+
+// A contract missing from the allowlist fails silently: the renderer's invoke
+// is blocked, the query errors, and the panel just looks empty. Worth a test
+// rather than an afternoon of debugging.
+describe("humanize preload channels", () => {
+  it("allows every humanize invoke contract", () => {
+    for (const contract of Object.values(humanizeContracts)) {
+      expect(VALID_INVOKE_CHANNELS).toContain(contract.channel);
     }
   });
 });

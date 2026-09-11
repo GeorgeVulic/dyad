@@ -139,7 +139,7 @@ export function HumanizePanel() {
   const { streamMessage } = useStreamChat({ hasChatId: false });
   const { selectChat } = useSelectChat();
   const queryClient = useQueryClient();
-  const { data, isLoading, refetch } = useHumanizeReview(selectedAppId);
+  const { data, isLoading, error, refetch } = useHumanizeReview(selectedAppId);
 
   const [isRunning, setIsRunning] = useState(false);
   const [applied, setApplied] = useState<
@@ -222,6 +222,9 @@ export function HumanizePanel() {
 
   const findings = data?.findings ?? [];
   const hasReview = findings.length > 0;
+  // The handler reports "no review" as a NotFound, which is a normal state
+  // rather than something to apologise for.
+  const isNotFound = /no humanize review found/i.test(error?.message ?? "");
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -294,7 +297,12 @@ export function HumanizePanel() {
               className="mx-auto text-muted-foreground mb-2"
             />
             <p className="text-xs text-muted-foreground">
-              No review yet. Findings appear here once one has run.
+              {/* An app with no review is the normal first state. A failure to
+                  load one is not, and saying "no review yet" for both hides
+                  the difference at the moment someone needs it. */}
+              {isNotFound || !error
+                ? "No review yet. Findings appear here once one has run."
+                : `Couldn't load the last review: ${error.message}`}
             </p>
           </div>
         )}

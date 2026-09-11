@@ -114,6 +114,7 @@ export function registerHumanizeHandlers() {
         .limit(1);
 
       if (result.length === 0) {
+        logger.log(`No humanize review message found for app ${appId}`);
         throw new DyadError(
           "No humanize review found for this app",
           DyadErrorKind.NotFound,
@@ -122,6 +123,9 @@ export function registerHumanizeHandlers() {
 
       const message = result[0];
       const findings = parseHumanizeFindings(message.content);
+      logger.log(
+        `Humanize review for app ${appId}: chat ${message.chatId}, ${findings.length} finding(s)`,
+      );
 
       if (findings.length === 0) {
         throw new DyadError(
