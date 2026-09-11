@@ -68,6 +68,7 @@ export const ChatTabPresentationStateSchema = z.object({
     "configure",
     "publish",
     "security",
+    "humanize",
     "tests",
     "plan",
   ]),

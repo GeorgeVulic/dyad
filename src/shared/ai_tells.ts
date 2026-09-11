@@ -50,7 +50,7 @@ export interface TellMatch {
 }
 
 interface TellSpec {
-  id: TellId;
+  id: TellId | JudgmentTellId;
   title: string;
   confidence: TellConfidence;
   /** Plain-language reason, shown in the finding detail. */
@@ -137,12 +137,83 @@ const TELLS: Record<TellId, TellSpec> = {
   },
 };
 
+/**
+ * Tells with no fixed shape, so no matcher can find them — reading for them is
+ * the model's job. They carry metadata anyway because the Humanize panel lists
+ * the whole taxonomy, and a list that stopped at the twelve mechanical ones
+ * would not account for findings the review actually reports.
+ */
+export type JudgmentTellId =
+  | "importance-puffery"
+  | "weasel-attribution"
+  | "profound-kicker"
+  | "benefit-padding"
+  | "stacked-abstraction"
+  | "robotic-rhythm"
+  | "symmetrical-grid";
+
+const JUDGMENT_TELLS: Record<JudgmentTellId, TellSpec> = {
+  "importance-puffery": {
+    id: "importance-puffery",
+    title: "Says it matters instead of showing why",
+    confidence: "likely",
+    why: "Calling something pivotal asserts significance the sentence never demonstrates. Naming what changed does the same work and can be checked.",
+  },
+  "weasel-attribution": {
+    id: "weasel-attribution",
+    title: "Credits everyone, names no one",
+    confidence: "likely",
+    why: "“Teams everywhere are discovering” attributes a view to a crowd that cannot be found. One named customer beats an invented consensus.",
+  },
+  "profound-kicker": {
+    id: "profound-kicker",
+    title: "Ends grand, says nothing",
+    confidence: "likely",
+    why: "A closing line pitched at significance it has not earned. The reader feels the cadence of a conclusion without receiving one.",
+  },
+  "benefit-padding": {
+    id: "benefit-padding",
+    title: "A benefit that fits any product",
+    confidence: "likely",
+    why: "If the sentence could move to another company or industry unchanged, it is filler. Replace it with a fact, a mechanism, or a consequence specific to this product.",
+  },
+  "stacked-abstraction": {
+    id: "stacked-abstraction",
+    title: "Abstractions stacked on abstractions",
+    confidence: "likely",
+    why: "Each noun is defined by another vague noun, so nothing lands. A reader cannot picture what the product does.",
+  },
+  "robotic-rhythm": {
+    id: "robotic-rhythm",
+    title: "Every sentence the same length",
+    confidence: "subtle",
+    why: "Uniform cadence with no variation. Human writing speeds up and slows down; copy that never does reads as generated.",
+  },
+  "symmetrical-grid": {
+    id: "symmetrical-grid",
+    title: "Every feature card the same shape",
+    confidence: "subtle",
+    why: "Identical length and bullet count across cards, because a template was filled rather than each feature described.",
+  },
+};
+
 export function getTellSpec(id: TellId): TellSpec {
   return TELLS[id];
 }
 
+/** The twelve tells the scanner can match. */
 export function listTells(): readonly TellSpec[] {
   return Object.values(TELLS);
+}
+
+/**
+ * Every tell the review can report, mechanical and judged alike.
+ *
+ * This is what the panel shows, so the list a user reads matches the findings
+ * they get back.
+ */
+export function listAllTells(): readonly TellSpec[] {
+  return [...Object.values(TELLS), ...Object.values(JUDGMENT_TELLS)];
 }
 
 // ── word lists ───────────────────────────────────────────────────────────────
