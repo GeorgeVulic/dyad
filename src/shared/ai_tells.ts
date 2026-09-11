@@ -220,7 +220,16 @@ const EMPTY_PHRASES = [
   "needless to say",
 ];
 
-/** Trailing -ing clauses that restate rather than explain. */
+/**
+ * Trailing -ing clauses that restate rather than explain.
+ *
+ * Deliberately excludes `making`, `letting` and `giving`. They form the same
+ * shape but are load-bearing far more often than not: "we rebuilt the
+ * importer, making it four times faster" adds a fact, and a comma list
+ * ("analyzing data, making observations, and reviewing literature") is not a
+ * participle clause at all. Every occurrence of `making` across the 140-doc
+ * review corpus was one of those two, and none was a tell.
+ */
 const SUPERFICIAL_ANALYSIS_VERBS = [
   "highlighting",
   "underscoring",
@@ -230,6 +239,10 @@ const SUPERFICIAL_ANALYSIS_VERBS = [
   "emphasizing",
   "signaling",
   "solidifying",
+  "helping",
+  "allowing",
+  "enabling",
+  "ensuring",
 ];
 
 /** Matched only as a whole string, so prose containing "learn more" is left alone. */
@@ -249,6 +262,15 @@ const PROOF_NOUNS =
   "teams|customers|users|companies|businesses|developers|brands|organizations|creators";
 
 const EM_DASH = /[—–]/g;
+
+/**
+ * "400–700 nanometres", "8 November 1848 – 26 July 1925".
+ *
+ * A dash between two numbers is a range, not a prose aside, so it should not
+ * count toward the density ratio. Spec pages and anything with dates or
+ * measurements are full of them.
+ */
+const NUMERIC_RANGE_DASH = /(?<=\d\s?)[—–](?=\s?\d)/g;
 
 // ── matchers ─────────────────────────────────────────────────────────────────
 
@@ -359,15 +381,33 @@ function countSentences(text: string): number {
 export const EM_DASH_PER_SENTENCE_THRESHOLD = 0.5;
 
 /**
+ * Counts dash *asides* rather than dash characters.
+ *
+ * A matched pair inside one sentence is a single parenthetical — correct
+ * punctuation that formal prose uses freely — while a lone dash is one clause
+ * joined where a comma would do. Counting characters treated every
+ * parenthetical as two offences and flagged careful writing for it.
+ */
+function countDashAsides(text: string): number {
+  const prose = text.replace(NUMERIC_RANGE_DASH, "");
+  let asides = 0;
+  for (const sentence of prose.split(/[.!?]+(?:\s|$)/)) {
+    asides += Math.ceil((sentence.match(EM_DASH)?.length ?? 0) / 2);
+  }
+  return asides;
+}
+
+/**
  * A ratio rather than a count, so a long page is not flagged for the same
- * dash habit a short one gets away with.
+ * dash habit a short one gets away with. Exceeding the threshold is the tell:
+ * one aside every other sentence is still within ordinary usage.
  */
 function matchEmDashDensity(text: string): TellMatch[] {
-  const dashes = text.match(EM_DASH)?.length ?? 0;
-  if (dashes < 2) return [];
+  const asides = countDashAsides(text);
+  if (asides < 2) return [];
 
   const sentences = countSentences(text);
-  if (dashes / sentences < EM_DASH_PER_SENTENCE_THRESHOLD) return [];
+  if (asides / sentences <= EM_DASH_PER_SENTENCE_THRESHOLD) return [];
 
   const spec = TELLS["em-dash-density"];
   return [
@@ -375,7 +415,7 @@ function matchEmDashDensity(text: string): TellMatch[] {
       id: "em-dash-density",
       title: spec.title,
       confidence: spec.confidence,
-      excerpt: `${dashes} em dashes across ${sentences} sentence${sentences === 1 ? "" : "s"}`,
+      excerpt: `${asides} dash asides across ${sentences} sentence${sentences === 1 ? "" : "s"}`,
       index: -1,
     },
   ];

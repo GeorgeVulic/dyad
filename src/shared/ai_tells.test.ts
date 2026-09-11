@@ -99,6 +99,17 @@ describe("scanForTells", () => {
     );
   });
 
+  it("finds the softer participles that restate a finished sentence", () => {
+    expect(
+      idsFor(
+        "Listeners can comment at specific playback times, helping you connect each note with the relevant moment.",
+      ),
+    ).toContain("superficial-analysis");
+    expect(
+      idsFor("We connect to Slack, allowing your team to see every deal."),
+    ).toContain("superficial-analysis");
+  });
+
   it("finds colon reveals and rhetorical setups", () => {
     expect(idsFor("The best part: it learns from every call.")).toContain(
       "colon-reveal",
@@ -172,6 +183,37 @@ describe("scanForTells leaves human copy alone", () => {
       "Setup takes about ten minutes. " +
       "You can cancel whenever you like.";
     expect(idsFor(text)).not.toContain("em-dash-density");
+  });
+
+  // Ranges are data, not rhetoric. A spec table full of them was reading as a
+  // dash habit before these were excluded.
+  it("does not count dashes between numbers as asides", () => {
+    expect(idsFor("Wavelengths run 400–700 nm, or 750–420 THz.")).not.toContain(
+      "em-dash-density",
+    );
+    expect(
+      idsFor("Frege (8 November 1848 – 26 July 1925) taught at Jena."),
+    ).not.toContain("em-dash-density");
+  });
+
+  // A matched pair is one parenthetical, not two offences — formal prose uses
+  // them correctly and was being flagged for it.
+  it("counts a parenthetical pair as a single aside", () => {
+    const text =
+      "Regret—should the better option surface later—is often experienced. " +
+      "It has a reputational component. " +
+      "It is central to risk aversion. " +
+      "The loop transcends the emotional realm—modeled as behavior—entirely.";
+    expect(idsFor(text)).not.toContain("em-dash-density");
+  });
+
+  // A list is not a participle clause.
+  it("does not treat a comma list as a restating clause", () => {
+    expect(
+      idsFor(
+        "Research involves conducting experiments, analyzing data, making observations, and reviewing literature.",
+      ),
+    ).not.toContain("superficial-analysis");
   });
 });
 
