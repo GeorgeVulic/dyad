@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import { db } from "../../db";
 import { apps, chats, messages } from "../../db/schema";
 import { eq, and, like, desc } from "drizzle-orm";
@@ -8,6 +9,8 @@ import type { HumanizeFinding } from "../types/humanize";
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import { getDyadAppPath } from "../../paths/paths";
 import { safeJoin } from "../utils/path_utils";
+import { gitService } from "../services/git_service";
+import { queueCloudSandboxSnapshotSync } from "../utils/cloud_sandbox_provider";
 import log from "electron-log";
 
 const logger = log.scope("humanize_handlers");
@@ -187,7 +190,8 @@ export function registerHumanizeHandlers() {
         throw new DyadError("App not found", DyadErrorKind.NotFound);
       }
 
-      const fullPath = safeJoin(getDyadAppPath(app.path), filePath);
+      const appPath = getDyadAppPath(app.path);
+      const fullPath = safeJoin(appPath, filePath);
 
       let contents: string;
       try {
@@ -221,6 +225,18 @@ export function registerHumanizeHandlers() {
         contents.slice(match.index + match[0].length);
 
       fs.writeFileSync(fullPath, updated, "utf8");
+
+      // Every other app-file write in the main process stages the change and
+      // pushes it to a running cloud sandbox. Without the sync the file only
+      // changes on disk, so a sandbox-backed preview keeps serving the old
+      // copy while the panel reports success. Staging rather than committing
+      // matches editAppFile: copy edits are reviewed and committed alongside
+      // whatever else the user changed.
+      if (fs.existsSync(path.join(appPath, ".git"))) {
+        await gitService.stageFile({ path: appPath, filepath: filePath });
+      }
+      queueCloudSandboxSnapshotSync({ appId, changedPaths: [filePath] });
+
       logger.log(`Applied a humanize finding in ${filePath}`);
 
       return { applied: true };
