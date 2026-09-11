@@ -59,7 +59,9 @@ export type ApplyHumanizeFindingInput = z.infer<
  */
 export const ApplyHumanizeFindingResultSchema = z.object({
   applied: z.boolean(),
-  reason: z.enum(["not-found", "ambiguous", "unreadable"]).optional(),
+  reason: z
+    .enum(["not-found", "ambiguous", "unreadable", "spans-markup"])
+    .optional(),
 });
 
 export type ApplyHumanizeFindingResult = z.infer<

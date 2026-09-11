@@ -31,12 +31,38 @@ const BODY_KEYS: Record<string, keyof HumanizeFinding> = {
 
 const CONFIDENCES = new Set(["strong", "likely", "subtle"]);
 
-/** Strips the backticks and trailing `:12` line number the model writes. */
+/**
+ * Pulls a usable path out of whatever the review wrote.
+ *
+ * The prompt asks for one `path:line`, but a review often says where the copy
+ * is also rendered — "src/data/config.ts:13 (rendered in src/app/page.tsx:18
+ * and src/app/layout.tsx:12)". That trailing note is commentary, and feeding
+ * the whole string to the filesystem fails to open anything. The first
+ * path-shaped token is the file the quoted line actually lives in.
+ */
+const FILE_REFERENCE = /([\w./@-]+\.[A-Za-z0-9]+)(?::\d+(?:-\d+)?)?/;
+
 function cleanFilePath(raw: string): string {
-  return raw
-    .replace(/`/g, "")
-    .replace(/:\d+(?:-\d+)?\s*$/, "")
-    .trim();
+  const cleaned = raw.replace(/`/g, "").trim();
+  return FILE_REFERENCE.exec(cleaned)?.[1] ?? cleaned;
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Matches a quoted line against source that wraps it.
+ *
+ * JSX holds copy across several indented lines, while a review quotes it as
+ * the reader sees it — one sentence. Comparing the two literally fails on
+ * most multi-line copy, so every run of whitespace matches any other.
+ */
+export function flexibleMatcher(line: string): RegExp {
+  return new RegExp(
+    line.trim().split(/\s+/).map(escapeRegex).join("\\s+"),
+    "g",
+  );
 }
 
 export function parseHumanizeFindings(content: string): HumanizeFinding[] {
@@ -171,15 +197,30 @@ export function registerHumanizeHandlers() {
         return { applied: false, reason: "unreadable" as const };
       }
 
-      const occurrences = contents.split(yourLine).length - 1;
-      if (occurrences === 0) {
-        return { applied: false, reason: "not-found" as const };
-      }
-      if (occurrences > 1) {
+      const matches = [...contents.matchAll(flexibleMatcher(yourLine))];
+
+      if (matches.length > 1) {
         return { applied: false, reason: "ambiguous" as const };
       }
 
-      fs.writeFileSync(fullPath, contents.replace(yourLine, suggested), "utf8");
+      if (matches.length === 0) {
+        // Copy broken up by a <br /> or a nested <span> reads as one sentence
+        // but is not one string. Replacing it would delete the markup between
+        // the halves, so say what happened instead of reshaping the layout.
+        const withoutTags = contents.replace(/<[^>]+>/g, " ");
+        const reason = flexibleMatcher(yourLine).test(withoutTags)
+          ? ("spans-markup" as const)
+          : ("not-found" as const);
+        return { applied: false, reason };
+      }
+
+      const [match] = matches;
+      const updated =
+        contents.slice(0, match.index) +
+        suggested +
+        contents.slice(match.index + match[0].length);
+
+      fs.writeFileSync(fullPath, updated, "utf8");
       logger.log(`Applied a humanize finding in ${filePath}`);
 
       return { applied: true };

@@ -25,6 +25,8 @@ const FAILURE_MESSAGE: Record<string, string> = {
     "That line isn't in the file any more — the copy changed since the review. Run it again to pick up the current text.",
   ambiguous:
     "That line appears more than once in the file, so there's no way to tell which one was reviewed. Edit it by hand.",
+  "spans-markup":
+    "That line is split by markup in the file — a line break or a nested tag sits inside it. Changing it automatically would drop that, so edit this one by hand.",
   unreadable: "That file couldn't be opened.",
 };
 
