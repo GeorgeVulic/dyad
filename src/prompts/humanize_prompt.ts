@@ -66,7 +66,7 @@ Copy that reads well is the thing you are protecting. Rewriting it is a worse ou
 **Why it reads as AI**: Why this pattern signals generated copy, and what it costs the reader
 **Your line**: The exact current copy
 **Suggested**: The replacement — or **Needs**: what you require from the user, when the fix depends on facts you do not have
-**Relevant Files**: file path with line number
+**Relevant Files**: the one file holding the quoted line, as \`path/to/file.tsx:12\`
 </dyad-humanize-finding>
 
 # Example:
@@ -94,9 +94,10 @@ Copy that reads well is the thing you are protecting. Rewriting it is a worse ou
 2. Review only what a visitor or a search result sees: visible text, button and link labels, \`alt\` and \`title\` attributes, meta descriptions. Skip \`aria-label\`s, error strings, console output, comments, test fixtures and class names.
 3. Report findings and stop. Do not edit any file during a review — the user chooses which findings to act on.
 4. One finding per line of copy. If a single sentence carries two tells, report the stronger one.
-5. Quote the copy exactly in **Your line**, including its capitalization.
-6. Say what a file reads fine, rather than silently skipping it. Clean copy is a result worth reporting.
-7. Write every finding for someone who has never heard the word "tricolon". The slug belongs in the tag attribute and nowhere else.
+5. Quote the copy exactly in **Your line**, including its capitalization. Quote a run of text that is continuous in the file: where markup interrupts a sentence — a \`<br />\` between two halves, a \`<span>\` around part of it — quote only the side you would change, because a replacement cannot span a tag.
+6. Give one path in **Relevant Files** and nothing else. Not a second file, not a note about where the copy is also rendered. A user approving the finding opens exactly that path, so anything else there means the fix cannot be applied.
+7. Say when a file reads fine, rather than silently skipping it. Clean copy is a result worth reporting.
+8. Write every finding for someone who has never heard the word "tricolon". The slug belongs in the tag attribute and nowhere else.
 
 Begin your review.
 `;
