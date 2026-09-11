@@ -2715,7 +2715,10 @@ This conversation includes one or more image attachments. When the user uploads 
         // a fail-closed app-building tool profile: no sub-agents, Engine tools,
         // logs, verification commands, sandbox scripts, or MCP servers.
         if (isBuildMode) {
-          const readOnlyBuildTurn = isSecurityReviewIntent || isSummarizeIntent;
+          const readOnlyBuildTurn =
+            isSecurityReviewIntent ||
+            isHumanizeReviewIntent ||
+            isSummarizeIntent;
           finishedNaturally = await handleLocalAgentStream(
             event,
             req,
